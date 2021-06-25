@@ -70,14 +70,18 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	}
 
 	/**
-	 * Set the config locations for this application context.
-	 * <p>If not set, the implementation may use a default as appropriate.
+	 * 设置配置文件地址，
+	 * 参数 locations 就是传递过来的字符串 “spring.xml”，可以传递多个文件名称
 	 */
 	public void setConfigLocations(@Nullable String... locations) {
 		if (locations != null) {
 			Assert.noNullElements(locations, "Config locations must not be null");
 			this.configLocations = new String[locations.length];
 			for (int i = 0; i < locations.length; i++) {
+				/**
+				 * 根据路径获取配置文件，并对配置文件进行格式化整理（处理占位符等）
+				 * 创建环境对象 ConfigurableEnvironment
+ 				 */
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}
 		}
@@ -120,6 +124,9 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @param path the original file path
 	 * @return the resolved file path
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
+	 *
+	 * getEnvironment()：创建 environment 环境对象
+	 * 解析占位符
 	 */
 	protected String resolvePath(String path) {
 		return getEnvironment().resolveRequiredPlaceholders(path);

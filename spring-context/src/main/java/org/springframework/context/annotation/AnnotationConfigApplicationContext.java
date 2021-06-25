@@ -63,11 +63,32 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	/**
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+	 *
+	 * 无参的构造方法：进行读取器和扫描器的初始化，
+	 * 在实例化之前会调用父类的构造方法给 BeanFactory 赋值为 DefaultListableFactory
 	 */
 	public AnnotationConfigApplicationContext() {
+		// 会调用父类 GenericApplicationContext 的父类 AbstractApplicationContext.getApplicationStartup() 方法提供了应用程序的入口
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// 在此之前，会执行父类 GenericApplicationContext 的无参构造方法，
+		// 1、初始化 bean 工厂：this.beanFactory = new DefaultListableBeanFactory();
+		// 2、初始化一个 beanDefinition 读取器
+		// 3、将 spring 内置的6个类封装成 RootBeanDefinition 并注册到 bean 工厂
+			// ConfigurationClassPostProcessor，处理 @Configuration 的类
+			// AutowiredAnnotationBeanPostProcessor，处理 @Autowired 的类
+			// CommonAnnotationBeanPostProcessor，处理 java 原生注解的类
+			// PersistenceAnnotationBeanPostProcessor，处理 JPA 注解的类
+			// EventListenerMethodProcessor，处理 @EventListener 的注解
+			// DefaultEventListenerFactory，主要用于管理事件监听工厂
 		this.reader = new AnnotatedBeanDefinitionReader(this);
+
 		createAnnotatedBeanDefReader.end();
+		// 新建 ClassPathBeanDefinitionScanner 扫描器，扫描 @ComponentScan 注解提供的包路径，
+		// 实际 Spring 在扫描的路径的时候，在内部 new 了一个 ClassPathBeanDefinitionScanner，并没有用此处的扫描器
+		// 当然可以手动的获取这个对象，调用它的 sacn() 方法，
+		// 那此处定义 ClassPathBeanDefinitionScanner 的意义何在？
+		// 可以自己定 new 一个 ClassPathBeanDefinitionScanner 对象或者扩展这个对象，利用它的扫描功能（使用的 ASM 扫描）
+		// 比如 mybatis中就自己扩展了 ClassPathBeanDefinitionScanner 类
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 
@@ -86,10 +107,16 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * from the given component classes and automatically refreshing the context.
 	 * @param componentClasses one or more component classes &mdash; for example,
 	 * {@link Configuration @Configuration} classes
+	 * 传入一个被注解了的类的 Class 数组，
+	 *
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 调用无参的构造方法
 		this();
+		// 使用无参的构造方法创建的 AnnotatedBeanDefinitionReader 将被注解修饰的类注册到 bean工厂中，
+		// 至于为什么，它（AnnotationConfigApplicationContext） 本身就是一个注册器
 		register(componentClasses);
+		// 调用 spring 核心方法
 		refresh();
 	}
 
@@ -101,6 +128,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
+		// 委托给 scanner 进行扫描
 		scan(basePackages);
 		refresh();
 	}
@@ -163,8 +191,11 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	@Override
 	public void register(Class<?>... componentClasses) {
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
+		// 启动类相关
 		StartupStep registerComponentClass = this.getApplicationStartup().start("spring.context.component-classes.register")
 				.tag("classes", () -> Arrays.toString(componentClasses));
+		// 此处用到了无参的构造方法 new 出来的 AnnotatedBeanDefinitionReader，其内部维护了个 registry，实际上就是 AnnotationConfigApplicationContext
+		// 将指定的类 注册到注册器中
 		this.reader.register(componentClasses);
 		registerComponentClass.end();
 	}

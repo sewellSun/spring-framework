@@ -546,7 +546,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-			// Prepare this context for refreshing.
+			// Prepare this context for refreshing. 可以在这里添加源码注释 + 源码调试
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
@@ -1245,6 +1245,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 	@Override
 	public boolean containsBeanDefinition(String beanName) {
+		// 这里的 getBeanFactory() 获取的是 DefaultListableBeanFactory，
+		// 所以此处会进到 DefaultListableBeanFactory.containsBeanDefinition() 方法中
 		return getBeanFactory().containsBeanDefinition(beanName);
 	}
 

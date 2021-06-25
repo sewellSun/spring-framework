@@ -372,6 +372,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Override
 	public boolean containsBeanDefinition(String beanName) {
 		Assert.notNull(beanName, "Bean name must not be null");
+		// beanDefinition 定义：private final Map<String, BeanDefinition> beanDefinitionMap
+		// 其实就是判断 map 中是否有指定的 key
 		return this.beanDefinitionMap.containsKey(beanName);
 	}
 
@@ -972,6 +974,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	// Implementation of BeanDefinitionRegistry interface
 	//---------------------------------------------------------------------
 
+	// 注册 beanDefinition
 	@Override
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
@@ -979,6 +982,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
+		// 校验当前的 beanDefinition 是否是能够处理的 beanDefinition
 		if (beanDefinition instanceof AbstractBeanDefinition) {
 			try {
 				((AbstractBeanDefinition) beanDefinition).validate();
@@ -989,6 +993,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// beanDefinitionMap：是 beanFactory 存放定义好的 beanDefinition
+		// 注册的时候先校验是否已经存在了，防止重复注册
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
 		if (existingDefinition != null) {
 			if (!isAllowBeanDefinitionOverriding()) {
@@ -1019,6 +1025,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
+			// 判断 bean 是否在创建中，正常的 register 流程中基本上为 null
 			if (hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				synchronized (this.beanDefinitionMap) {
@@ -1032,6 +1039,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 			else {
 				// Still in startup registration phase
+				// 将 beanDefinition 添加到 beanFactory 中：
+				// 	添加到 beanDefinitionMap
+				//	添加到 beanDefinitionNames
+				// 	从 Set<String> manualSingletonNames 中移除，已经注册完了
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 				this.beanDefinitionNames.add(beanName);
 				removeManualSingletonName(beanName);
@@ -1039,6 +1050,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.frozenBeanDefinitionNames = null;
 		}
 
+		/**
+		 * 如果该 BeanDefinition 注册过，则在 mergedBeanDefinitions 中会有缓存
+		 * 如果该 beanName曾经是单体对象，上面只是 remove manualSingletonNames,还需要清空singletonObjects等等，
+		 * singletonObjects是Spring单例Bean的三层缓存中第一层，三层缓存可以解决循环依赖问题
+		 * resetBeanDefinition就是负责清空这些
+		 */
 		if (existingDefinition != null || containsSingleton(beanName)) {
 			resetBeanDefinition(beanName);
 		}

@@ -154,6 +154,9 @@ public abstract class BeanDefinitionReaderUtils {
 	 * @param definitionHolder the bean definition including name and aliases
 	 * @param registry the bean factory to register with
 	 * @throws BeanDefinitionStoreException if registration failed
+	 *
+	 * 向给定的 registry 中注册 beanDefinition
+	 *
 	 */
 	public static void registerBeanDefinition(
 			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
@@ -161,6 +164,10 @@ public abstract class BeanDefinitionReaderUtils {
 
 		// Register bean definition under primary name.
 		String beanName = definitionHolder.getBeanName();
+
+		// 上一步封装的 definitionHolder，这里进行拆解注册，
+		// 此处的 registry 是一个 AnnotationConfigApplicationContext，
+		// 此处调用的 registerBeanDefinition 实际上是调用其父类 GenericApplicationContext 中的方法
 		registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
 
 		// Register aliases for bean name, if any.

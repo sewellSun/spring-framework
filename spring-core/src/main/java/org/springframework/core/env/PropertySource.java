@@ -57,12 +57,14 @@ import org.springframework.util.ObjectUtils;
  * @see MutablePropertySources
  * @see org.springframework.context.annotation.PropertySource
  */
+
+// 泛型T代表数据源类型，可以是java.util.Properties,也可以是java.util.HashMap,也可以是ServletContext，servletConfig等等
 public abstract class PropertySource<T> {
 
 	protected final Log logger = LogFactory.getLog(getClass());
-
+	// 属性源的名称
 	protected final String name;
-
+	// 属性源
 	protected final T source;
 
 
@@ -71,6 +73,7 @@ public abstract class PropertySource<T> {
 	 * @param name the associated name
 	 * @param source the source object
 	 */
+	// 通过给定的属性源名称和属性源创建 PropertySource 实例
 	public PropertySource(String name, T source) {
 		Assert.hasText(name, "Property source name must contain at least one character");
 		Assert.notNull(source, "Property source must not be null");
@@ -85,6 +88,8 @@ public abstract class PropertySource<T> {
 	 * that never query an actual source but rather return hard-coded values.
 	 */
 	@SuppressWarnings("unchecked")
+	// 使用给定的名称，使用object作为底层属性源创建 PropertySource 实例，
+	// 一般用于测试场景中，将一些硬编码作为返回值
 	public PropertySource(String name) {
 		this(name, (T) new Object());
 	}
@@ -93,6 +98,7 @@ public abstract class PropertySource<T> {
 	/**
 	 * Return the name of this {@code PropertySource}.
 	 */
+	// 返回本 PropertySource 的名称
 	public String getName() {
 		return this.name;
 	}
@@ -100,6 +106,7 @@ public abstract class PropertySource<T> {
 	/**
 	 * Return the underlying source object for this {@code PropertySource}.
 	 */
+	// 返回本 PropertySource 的底层数据源
 	public T getSource() {
 		return this.source;
 	}
@@ -111,6 +118,7 @@ public abstract class PropertySource<T> {
 	 * a more efficient algorithm if possible.
 	 * @param name the property name to find
 	 */
+	// 返回本 PropertySource 中是否包含指定 name的数据，子类可以重载
 	public boolean containsProperty(String name) {
 		return (getProperty(name) != null);
 	}
@@ -121,6 +129,7 @@ public abstract class PropertySource<T> {
 	 * @param name the property to find
 	 * @see PropertyResolver#getRequiredProperty(String)
 	 */
+	// 返回给定的 name 相关联的value，子类必须实现的抽象方法
 	@Nullable
 	public abstract Object getProperty(String name);
 

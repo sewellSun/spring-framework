@@ -155,6 +155,10 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * definition profile metadata
 	 * @param resourceLoader the {@link ResourceLoader} to use
 	 * @since 4.3.6
+	 *
+	 *
+	 * 使用给定的环境为 bean 工厂创建一个新的ClassPathBeanDefinitionScanner对象，但是此处没有进行 scan调用
+	 *
 	 */
 	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
 			Environment environment, @Nullable ResourceLoader resourceLoader) {
