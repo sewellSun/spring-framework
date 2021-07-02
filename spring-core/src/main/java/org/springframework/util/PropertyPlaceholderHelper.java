@@ -83,6 +83,20 @@ public class PropertyPlaceholderHelper {
 	 * @param ignoreUnresolvablePlaceholders indicates whether unresolvable placeholders should
 	 * be ignored ({@code true}) or cause an exception ({@code false})
 	 */
+
+	// 		PropertyPlaceholderHelper 加载的时候会加载下面的特殊字符
+	//			static {
+	// 				wellKnownSimplePrefixes.put("}", "{");
+	// 				wellKnownSimplePrefixes.put("]", "[");
+	// 				wellKnownSimplePrefixes.put(")", "(");
+	//        	}
+	//
+	//	创建一个新的 PropertyPlaceholderHelper ，使用提供的前缀和后缀
+	//	placeholderPrefix：占位符开头的前缀
+	//	placeholderSuffix：占位符结尾的后缀
+	//	valueSeparator：占位符变量和关联的默认值之间的分隔符
+	//	ignoreUnresolvablePlaceholders：指示是否忽略不可解析的占位符
+
 	public PropertyPlaceholderHelper(String placeholderPrefix, String placeholderSuffix,
 			@Nullable String valueSeparator, boolean ignoreUnresolvablePlaceholders) {
 

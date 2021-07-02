@@ -332,7 +332,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	@Override
 	public ConfigurableEnvironment getEnvironment() {
+		// 以配置的形式返回此应用程序上下文的 Environment，来进一步自定义
+		// 如果没有指定，则通过初始化默认的环境
 		if (this.environment == null) {
+			// 使用默认的环境
 			this.environment = createEnvironment();
 		}
 		return this.environment;
@@ -344,6 +347,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * a custom {@link ConfigurableEnvironment} implementation.
 	 */
 	protected ConfigurableEnvironment createEnvironment() {
+		// 创建并返回一个 standardEnviroment，子类重写这个方法为了提供一个自定义的 ConfigurableEnvironment 实现
+		// StandardEnvironment extends AbstractEnvironment,AbstractEnvironment implements ConfigurableEnvironment
 		return new StandardEnvironment();
 	}
 

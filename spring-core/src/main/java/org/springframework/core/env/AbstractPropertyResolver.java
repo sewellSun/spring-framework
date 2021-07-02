@@ -208,6 +208,7 @@ public abstract class AbstractPropertyResolver implements ConfigurablePropertyRe
 		if (this.strictHelper == null) {
 			this.strictHelper = createPlaceholderHelper(false);
 		}
+		// 解析完成占位符之后，需要做真正的解析，调用实际的解析方法
 		return doResolvePlaceholders(text, this.strictHelper);
 	}
 

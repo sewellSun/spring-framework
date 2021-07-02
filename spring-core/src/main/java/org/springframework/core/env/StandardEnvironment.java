@@ -54,15 +54,18 @@ package org.springframework.core.env;
 public class StandardEnvironment extends AbstractEnvironment {
 
 	/** System environment property source name: {@value}. */
+	// 系统属性资源名称
 	public static final String SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME = "systemEnvironment";
 
 	/** JVM system properties property source name: {@value}. */
+	// JVM 系统属性资源名
 	public static final String SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME = "systemProperties";
 
 
 	/**
 	 * Create a new {@code StandardEnvironment} instance.
 	 */
+	// 创建一个 StandardEnvironment 对象，此处会走父类 AbstractEnvironment 的无参构造方法
 	public StandardEnvironment() {
 	}
 
@@ -89,6 +92,7 @@ public class StandardEnvironment extends AbstractEnvironment {
 	 * @see #getSystemProperties()
 	 * @see #getSystemEnvironment()
 	 */
+	// 为标准的 JAVA环境自定义合适的属性文件
 	@Override
 	protected void customizePropertySources(MutablePropertySources propertySources) {
 		propertySources.addLast(
