@@ -67,10 +67,14 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Parses the supplied {@link Element} by delegating to the {@link BeanDefinitionParser} that is
 	 * registered for that {@link Element}.
 	 */
+	// 委托 BeanDefinitionParser 类解析元素
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 获取自定义组件名 对应的解析方法
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
+		// 调用 实现类中的 parse 方法
+		// org.springframework.context.annotation.ComponentScanBeanDefinitionParser.parse
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
 
@@ -78,9 +82,18 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Locates the {@link BeanDefinitionParser} from the register implementations using
 	 * the local name of the supplied {@link Element}.
 	 */
+	// 从 map 中根据组件名称获取绑定的解析方法
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		// 获取组件名称
 		String localName = parserContext.getDelegate().getLocalName(element);
+		// private final Map<String, BeanDefinitionParser> parsers = new HashMap<>();
+		/**
+		 * 此处this.parsers.get()之所以有值，
+		 * 是因为在/META-INF/spring.handers中URI对应的Hander处理类初始化的时候
+		 * 通过init()方法中执行 registerBeanDefinitionParser()，
+		 * 来调用this.parsers.set('标签元素','解析类')设置的。
+		 */
 		BeanDefinitionParser parser = this.parsers.get(localName);
 		if (parser == null) {
 			parserContext.getReaderContext().fatal(

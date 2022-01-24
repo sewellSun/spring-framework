@@ -202,10 +202,21 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 *
 	 * 为 @Component、@Repository、@Controller、@Service注解创建默认的过滤器
 	 */
+	// 使用默认过滤规则，处理指定的注解类，然后进行注册
 	@SuppressWarnings("unchecked")
 	protected void registerDefaultFilters() {
-		// 添加扫描注解 @Component
+		/**
+		 * 注：
+		 * 过滤器将会拦截@Component注解标注的类，
+		 * 包括被 @Component标注的 @Service，@Repository，@Controller以及Java EE 6的javax.annotation.ManagedBean， JSR-330的javax.inject.Named 。
+		 * 将拦截到的注解添加到List<TypeFilter> includeFilters = new LinkedList<>() 容器中。
+		 * 最后，根据匹配的metadataReader生成ScannedGenericBeanDefinition。
+		 */
+
+		// 过滤器中添加需要扫描的注解类型，此处添加的是 @Component
+		// 将注解添加到 AnnotationTypeFilter 包装类
 		this.includeFilters.add(new AnnotationTypeFilter(Component.class));
+		// 确保类注解是 ClassPathScanningCandidateComponentProvider 的类加载器
 		ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
 		try {
 			// 添加扫描 JSR-250 规范

@@ -165,11 +165,17 @@ public abstract class BeanDefinitionReaderUtils {
 		// Register bean definition under primary name.
 		String beanName = definitionHolder.getBeanName();
 
-		// 上一步封装的 definitionHolder，这里进行拆解注册，
+		// 重要！！完成 BeanDefinition的注册，上一步封装的 definitionHolder，这里进行拆解注册，
 		// 此处的 registry 是一个 AnnotationConfigApplicationContext，
-		// 此处调用的 registerBeanDefinition 实际上是调用其父类 GenericApplicationContext 中的方法
+		// org.springframework.beans.factory.support.DefaultListableBeanFactory.registerBeanDefinition
+		/**
+		 * DefaultListableBeanFactory 类的 registerBeanDefinition 方法，
+		 * 最终会把 bean名称 和 beanDefinition 放到 Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256)的容器中，
+		 * 并且把 bean名称放到 List<String> beanDefinitionNames = new ArrayList<>(256) 的 list 容器中缓存起来。
+		 */
 		registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
 
+		// 建立别名 和 id 的映射，就可以根据别名获取到 id
 		// Register aliases for bean name, if any.
 		String[] aliases = definitionHolder.getAliases();
 		if (aliases != null) {

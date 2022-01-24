@@ -79,6 +79,10 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 				/**
 				 * 根据路径获取配置文件，并对配置文件进行格式化整理（处理占位符等）
 				 * 创建环境对象 ConfigurableEnvironment
+				 * 模糊匹配包含多个场景：
+				 * 		/config/xx/Spring.xml
+				 *		/config/{dev}-Spring.xml
+				 *		等等
  				 */
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}

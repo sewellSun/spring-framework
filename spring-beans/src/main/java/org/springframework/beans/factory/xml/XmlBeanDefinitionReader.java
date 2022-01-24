@@ -317,6 +317,8 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @return the number of bean definitions found
 	 * @throws BeanDefinitionStoreException in case of loading or parsing errors
 	 */
+	// 获取 Resource 对象中的 xml 文件流对象，转换成 InputSource 对象
+	// InputSource 是 jdk 中的 sax xml 解析对象
 	public int loadBeanDefinitions(EncodedResource encodedResource) throws BeanDefinitionStoreException {
 		Assert.notNull(encodedResource, "EncodedResource must not be null");
 		if (logger.isTraceEnabled()) {
@@ -330,11 +332,15 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
 		}
 
+		// 获取 Resource 对象中的 xml 文件流对象
 		try (InputStream inputStream = encodedResource.getResource().getInputStream()) {
+			// 把文件流对象包装成 InputSource
+			// InputSource 是 jdk 中 org.xml.sax 包下的类，负责 xml 文档解析
 			InputSource inputSource = new InputSource(inputStream);
 			if (encodedResource.getEncoding() != null) {
 				inputSource.setEncoding(encodedResource.getEncoding());
 			}
+			// 核心的转换方法
 			return doLoadBeanDefinitions(inputSource, encodedResource.getResource());
 		}
 		catch (IOException ex) {
@@ -383,11 +389,14 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see #doLoadDocument
 	 * @see #registerBeanDefinitions
 	 */
+	// 通过 xml 解析，得到的 document 对象的标签元素，封装成 BeanDefinition
 	protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource)
 			throws BeanDefinitionStoreException {
 
 		try {
+			// 把 inputSource 对象封装成 Document 文件对象，是 jdk 的 API
 			Document doc = doLoadDocument(inputSource, resource);
+			// 核心方法！！ 根据解析出来的 Document 对象，拿到里面的标签元素，并封装成 BeanDefinition
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -505,9 +514,20 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see #setDocumentReaderClass
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
+	// 注册 BeanDefinition 对象
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		// 委托模式，BeanDefinitionDocumentReader 委托这个类进行 document 的解析
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		/**
+		 * 核心方法，createReaderContext(resource) 返回 XmlReaderContext 上下文
+		 * 最后封装了 XmlBeanDefinitionReader 对象
+		 * {包名：org.springframework.beans.factory.xml}XmlReaderContext 可以理解为 XML 解析过程中的上下文，
+		 * 特点：
+		 * 	 持有了 XmlBeanDefinitionReader reader 对象的引用。
+		 * 	 将解析出来的 BeanDefinition 对象缓存到 BeanDefinitionRegistry
+		 */
+		// org.springframework.beans.factory.xml.DefaultBeanDefinitionDocumentReader.registerBeanDefinitions
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}

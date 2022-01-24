@@ -160,13 +160,15 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * 使用给定的环境为 bean 工厂创建一个新的ClassPathBeanDefinitionScanner对象，但是此处没有进行 scan调用
 	 *
 	 */
+	// 构造方法
 	public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
 			Environment environment, @Nullable ResourceLoader resourceLoader) {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		this.registry = registry;
-
+		// 使用默认的过滤器
 		if (useDefaultFilters) {
+			// 主要处理方法
 			registerDefaultFilters();
 		}
 		setEnvironment(environment);
@@ -273,10 +275,12 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @param basePackages the packages to check for annotated classes
 	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
 	 */
+	// 根据 base-package 中的字符串扫描封装 BeanDefinition 对象，执行 BeanDefinition 注册
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		for (String basePackage : basePackages) {
+			// 扫描到有注解的类并封装成 BeanDefinition 对象
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
@@ -286,6 +290,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {
+					// 支持了 @Lazy、@DependOn 注解
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
 				if (checkCandidate(beanName, candidate)) {
@@ -293,6 +298,8 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
+					// BeanDefinition 注册
+					// org.springframework.beans.factory.support.BeanDefinitionReaderUtils.registerBeanDefinition
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}

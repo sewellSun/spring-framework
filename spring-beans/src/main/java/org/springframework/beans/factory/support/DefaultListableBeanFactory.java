@@ -979,6 +979,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
 
+
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
@@ -1052,9 +1053,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		/**
 		 * 如果该 BeanDefinition 注册过，则在 mergedBeanDefinitions 中会有缓存
-		 * 如果该 beanName曾经是单体对象，上面只是 remove manualSingletonNames,还需要清空singletonObjects等等，
-		 * singletonObjects是Spring单例Bean的三层缓存中第一层，三层缓存可以解决循环依赖问题
-		 * resetBeanDefinition就是负责清空这些
+		 * 如果该 beanName 曾经是单体对象，上面只是 remove manualSingletonNames, 还需要清空 singletonObjects 等等，
+		 * singletonObjects 是 Spring 单例 Bean 的三层缓存中第一层，三层缓存可以解决循环依赖问题
+		 * resetBeanDefinition 就是负责清空这些
 		 */
 		if (existingDefinition != null || containsSingleton(beanName)) {
 			resetBeanDefinition(beanName);

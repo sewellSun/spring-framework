@@ -128,7 +128,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
-		// 委托给 scanner 进行扫描
+		// 委托给 scanner 进行扫描 2021 11 26
 		scan(basePackages);
 		refresh();
 	}

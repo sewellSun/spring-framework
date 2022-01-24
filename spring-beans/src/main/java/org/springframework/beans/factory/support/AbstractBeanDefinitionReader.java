@@ -185,6 +185,8 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		Assert.notNull(resources, "Resource array must not be null");
 		int count = 0;
 		for (Resource resource : resources) {
+			// 模板设计模式，调用到子类 XmlBeanDefinitionReader 的方法中
+			// org.springframework.beans.factory.xml.XmlBeanDefinitionReader.loadBeanDefinitions
 			count += loadBeanDefinitions(resource);
 		}
 		return count;
@@ -210,7 +212,9 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource)
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
+	// 字符串类型的 xml 文件路径，转换成 Resource
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		// 获取上下文对象
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
@@ -220,7 +224,12 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				/**
+				 * 把字符串类型的 xml 文件路径，形如：classpath*:user/xx/x-context.xml
+				 * 使用流的方式读取文件，然后封装成 Resource 对象类型
+				 */
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				// 把配置文件转换成 BeanDefinition 核心方法！！
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -249,11 +258,15 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		}
 	}
 
+	// 加载字符串到 BeanDefinitions 中，即 'spring.xml' 等
 	@Override
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");
 		int count = 0;
+		// 配置文件有多个，加载多个配置文件
 		for (String location : locations) {
+			// 调用父类的 loadBeanDefinitions 方法
+			// org.springframework.beans.factory.support.AbstractBeanDefinitionReader.loadBeanDefinitions()
 			count += loadBeanDefinitions(location);
 		}
 		return count;

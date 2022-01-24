@@ -410,8 +410,18 @@ public class BeanDefinitionParserDelegate {
 	 * if there were errors during parse. Errors are reported to the
 	 * {@link org.springframework.beans.factory.parsing.ProblemReporter}.
 	 */
+	// 解析 Element 并返回 BeanDefinitionHolder 持有者
 	@Nullable
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
+		/**
+		 * 返回的 BeanDefinitionHolder 为后续 BeanDefinition 注册做准备，
+		 * 	 BeanDefinitionReaderUtils 类的 registerBeanDefinition() 方法需要 BeanDefinitionHolder 对象作为入参进行注册。
+		 * 在BeanDefinitionHolder 对象中持有 beanDefinition 和 beanName 两个重要属性。
+		 * 	private final BeanDefinition beanDefinition;
+		 * 	private final String beanName;
+		 * 	private final String[] aliases;
+		 * 	aliases作用：通过aliases找到beanName，根据beanName拿到beanDefinition对象。
+		 */
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
@@ -429,11 +439,11 @@ public class BeanDefinitionParserDelegate {
 						"' as bean name and " + aliases + " as aliases");
 			}
 		}
-
+		// 检查 beanName 是否重复
 		if (containingBean == null) {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
-
+		// 重要！！ 解析 BeanDefinitionElement
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
 			if (!StringUtils.hasText(beanName)) {
@@ -496,10 +506,15 @@ public class BeanDefinitionParserDelegate {
 	 * Parse the bean definition itself, without regard to name or aliases. May return
 	 * {@code null} if problems occurred during the parsing of the bean definition.
 	 */
+	// 解析 BeanDefinitionElement
 	@Nullable
 	public AbstractBeanDefinition parseBeanDefinitionElement(
 			Element ele, String beanName, @Nullable BeanDefinition containingBean) {
-
+		/**
+		 * <bean>标签 解析完成，会统一放到BeanDefinition中。
+		 * <lookup-method>、<replaced-method>、<property>这种子标签会放到MutablePropertyValues 类中。
+		 * <constructor-arg>子标签会放到 ConstructorArgumentValues 类中
+		 */
 		this.parseState.push(new BeanEntry(beanName));
 
 		String className = null;
@@ -512,17 +527,23 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		try {
+			// 创建 GenericBeanDefinition 对象
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			// 解析 bean 标签的属性，并且把解析出来的属性设置到 BeanDefinition 对象中
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
+			// 解析 bean 标签中的 meta 标签
 			parseMetaElements(ele, bd);
+			// 解析 bean 标签中的 lookup-method 标签
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			// 解析 bean 标签中的 replace-method 标签
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
-
+			// 解析 bean 标签中的 constructor-arg 标签
 			parseConstructorArgElements(ele, bd);
+			// 解析 bean 标签中的 property 表啊
 			parsePropertyElements(ele, bd);
+			// 解析 bean 标签中的 qualifier 标签
 			parseQualifierElements(ele, bd);
 
 			bd.setResource(this.readerContext.getResource());
@@ -553,6 +574,7 @@ public class BeanDefinitionParserDelegate {
 	 * @param containingBean containing bean definition
 	 * @return a bean definition initialized according to the bean element attributes
 	 */
+	// 最终的 BeanDefinition 属性在此方法中统一解析，BeanDefinitionParserDelegate 委托类包含了所有bean 标签元素的属性常量
 	public AbstractBeanDefinition parseBeanDefinitionAttributes(Element ele, String beanName,
 			@Nullable BeanDefinition containingBean, AbstractBeanDefinition bd) {
 
@@ -1377,17 +1399,31 @@ public class BeanDefinitionParserDelegate {
 	 * @param containingBd the containing bean definition (if any)
 	 * @return the resulting bean definition
 	 */
+	// 自定义标签交给 BeanDefinitionParserDelegate 委托类解析
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
+		// 获取命名空间的 URI
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
+		// SPI 设计，获取 /META-INF/spring.handers 中 URI 对应的 Hander 处理类
+		/**
+		 * getNamespaceHandlerResolver().resolve()方法 ，
+		 * 实际由DefaultNamespaceHandlerResolver.resolve() 方法实现，
+		 * DefaultNamespaceHandlerResolver类实现了NamespaceHandlerResolver接口。具体解析内容如下：
+		 *  获取 spring 中所有jar包里面的 META-INF/spring.handlers 文件，并且建立映射关系。
+		 *  根据 namespaceUri 获取到这个命名空间的处理类。
+		 *  调用处理类的 init()方法，在 init()方法中完成标签元素解析类的注册。
+		 */
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
+
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);
 			return null;
 		}
+		// 执行实现类 NamespaceHandlerSupport 中的 parse 方法
+		// org.springframework.beans.factory.xml.NamespaceHandlerSupport.parse
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 

@@ -546,18 +546,62 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return this.applicationListeners;
 	}
 
+	/**
+	 * 此方法是 spring 容器初始化的核心方法，是 spring 容器初始化的核心流程
+	 * 是一个典型的父类模板设计模式的运用，根据不同的上下文对象，对调用到不同的上下文对象的子类方法中。
+	 * 核心上下文子类有：
+	 *	ClassPathXmlApplicationContext				xml配置方式
+	 *	FileSystemXmlApplicationContext				配置文件方式
+	 *	AnnotationConfigApplicationContext			注解方式
+	 *	EmbeddedWebApplicationContext(springboot)	springboot
+	 *
+	 */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
+		/**
+		 * 使用对象锁 startupShutdownMonitor 进行同步控制“
+		 * 1、避免了多线程同时刷新 spring 配置，只对不能并发的代码块进行加锁，提高了整体代码运行的效率
+		 * 2、refresh()方法 和 close()方法 都使用了 startupShutdownMonitor 对象锁加锁，
+		 * 		这就保证了在调用 refresh()方法 的同时无法调用 close()方法，避免冲突
+		 */
 		synchronized (this.startupShutdownMonitor) {
+			// /启动阶段标记, 初始化时标记位为 false, 执行 refresh 完毕后修改为 true (最后的 end 方法).
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-			// Prepare this context for refreshing. 可以在这里添加源码注释 + 源码调试
+			// Prepare this context for refreshing.
+			/**
+			 * 准备此上下文用于刷新
+			 * 1、设置启动日期 和 active 标志
+			 * 2、执行属性源的初始化
+			 */
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			/**
+			 * 创建 BeanFactory 功能，以及创建 XmlBeanDefinitionReader 对象
+			 * 1、创建 BeanFactory 对象
+			 * 2、xml 解析
+			 * 	  传统标签解析：bean、import 等
+			 * 	  自定义标签解析：如 <context:component-scan base-package="com.XXX.XXX"/>
+			 * 	  自定义标签解析流程：
+			 * 	  	a.根据当前解析标签的头信息找到对应的 namespaceUri
+			 * 	  	b.加载 spring 所有 jar 中的 spring.handlers 文件，并建立映射关系
+			 * 	  	c.根据 namespaceUri 从映射关系中找到对应的实现了 NamespaceHandler 接口的类
+			 * 	  	d.调用类的 init 方法，init 方法是注册了各种自定义标签的解析类
+			 * 	    e.根据 namespaceUri 找到对应的解析类，然后调用 paser 方法完成标签
+			 * 3、把解析出来的 xml 封装成 BeanDefinition 对象
+			 *
+			 * 最终保存方式和默认标签的保存方式一致，都是放到对应的两个Map容器缓存起来。
+			 *
+			 */
+			// org.springframework.context.support.AbstractApplicationContext.obtainFreshBeanFactory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
+			/**
+			 * 给 beanFactory 设置一些属性值
+			 */
+			// org.springframework.context.support.AbstractApplicationContext.prepareBeanFactory
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -673,6 +717,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		// 获取 bean 工厂入口
+		// 模板设计模式，子类实现钩子方法，转到子类：AbstractRefreshableApplicationContext 中
+		// org.springframework.context.support.AbstractRefreshableApplicationContext.refreshBeanFactory
 		refreshBeanFactory();
 		return getBeanFactory();
 	}

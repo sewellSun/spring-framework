@@ -76,30 +76,46 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 
 	private static final String FILTER_EXPRESSION_ATTRIBUTE = "expression";
 
-
+	/**
+	 * 核心代码解析
+	 * 1、扫描路径 .class 后缀的文件
+	 * 2、要判断类上是否有注解
+	 * 3、GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
+	 *    genericBeanDefinition.setBeanClass(BeanClass.class);
+	 * 4、完成beanDefinition注册
+	 */
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 获取 basePackage 属性
 		String basePackage = element.getAttribute(BASE_PACKAGE_ATTRIBUTE);
 		basePackage = parserContext.getReaderContext().getEnvironment().resolvePlaceholders(basePackage);
+		// 可以用逗号分开
 		String[] basePackages = StringUtils.tokenizeToStringArray(basePackage,
 				ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
 
 		// Actually scan for bean definitions and register them.
+		// 创建注解扫描器
 		ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element);
+		// 扫描 并且把扫描的类封装成 beanDefinition 对象，核心方法！！
+		// org.springframework.context.annotation.ClassPathBeanDefinitionScanner.doScan
 		Set<BeanDefinitionHolder> beanDefinitions = scanner.doScan(basePackages);
 		registerComponents(parserContext.getReaderContext(), beanDefinitions, element);
 
 		return null;
 	}
 
+	// 创建注解扫描器
 	protected ClassPathBeanDefinitionScanner configureScanner(ParserContext parserContext, Element element) {
+		// 使用默认的过滤器
 		boolean useDefaultFilters = true;
+		// @Service @Component 默认的 filter
 		if (element.hasAttribute(USE_DEFAULT_FILTERS_ATTRIBUTE)) {
 			useDefaultFilters = Boolean.parseBoolean(element.getAttribute(USE_DEFAULT_FILTERS_ATTRIBUTE));
 		}
 
 		// Delegate bean definition registration to scanner class.
+		// 核心方法！！创建注解的扫描器
 		ClassPathBeanDefinitionScanner scanner = createScanner(parserContext.getReaderContext(), useDefaultFilters);
 		scanner.setBeanDefinitionDefaults(parserContext.getDelegate().getBeanDefinitionDefaults());
 		scanner.setAutowireCandidatePatterns(parserContext.getDelegate().getAutowireCandidatePatterns());
@@ -109,6 +125,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		}
 
 		try {
+			// 解析子标签
 			parseBeanNameGenerator(element, scanner);
 		}
 		catch (Exception ex) {
@@ -116,17 +133,18 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		}
 
 		try {
+			// 解析子标签
 			parseScope(element, scanner);
 		}
 		catch (Exception ex) {
 			parserContext.getReaderContext().error(ex.getMessage(), parserContext.extractSource(element), ex.getCause());
 		}
-
+		// 扫描含有 "include-filter" 和 "exclude-filter" 属性进行解析
 		parseTypeFilters(element, scanner, parserContext);
 
 		return scanner;
 	}
-
+	// org.springframework.context.annotation.ClassPathBeanDefinitionScanner.ClassPathBeanDefinitionScanner
 	protected ClassPathBeanDefinitionScanner createScanner(XmlReaderContext readerContext, boolean useDefaultFilters) {
 		return new ClassPathBeanDefinitionScanner(readerContext.getRegistry(), useDefaultFilters,
 				readerContext.getEnvironment(), readerContext.getResourceLoader());
